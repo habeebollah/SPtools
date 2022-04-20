@@ -10,12 +10,12 @@ SPtools merupakan kumpulan tools yang dibuat untuk mendukung pendugaan stok yang
 6) F.NEq_Projector
 
 ### Cara menggunakan package SPtools ####
-# membuat input data
+#### membuat input data
 df <- data.frame(tahun=c(...),
                  tangkapan=c(...),
                  upaya=c(...))
 
-# melakukan estimasi parameter menggunakan optim
+#### melakukan estimasi parameter menggunakan optim
 K <- max(df[,2])*2
 Bo <- max(df[,2])*1.5
 r <- 0.5
@@ -28,7 +28,7 @@ fit <- optim(par=startPars,
              df=df, 
              method="Nelder-Mead")
 
-# membuat plot hasil data fitting
+#### membuat plot hasil data fitting
 predicted <- NEq.Sch(inpars = fitted_pars[1:4], df)
 
-# membuat proyeksi
+#### membuat proyeksi
