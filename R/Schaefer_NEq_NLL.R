@@ -17,7 +17,7 @@ function(inpars, df){
   }
   EstCPUE <-  EstBt * q
   
-  nll <- -sum(dlnorm(x= CPUE, meanlog = log(EstCPUE), sdlog = sigma, log = TRUE))
-  
+  #nll <- -sum(dlnorm(x= na.omit(CPUE), meanlog = log(na.omit(EstCPUE)), sdlog = sigma, log = TRUE))
+  #nll <- sum(0.5*log(2*pi)+log(sigma)+log(CPUE)+(log(CPUE)-log(EstCPUE))^2/(2*sigma^2))
   return(nll)
 }
