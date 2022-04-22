@@ -4,11 +4,11 @@ SPtools merupakan kumpulan tools yang dibuat untuk mendukung pendugaan stok yang
 
 1. Surplus produksi dengan asumsi equilibrium
 
-Tool ini menghitung jumlah tangkapan ikan lestari (MSY) dan upaya penangkapan ikan lestari (Emsy) dengan asumsi equilibrium untuk model Schaefer dan Fox. Pendekatan ini ditampilkan disini hanya untuk tujuan edukasi sebagai contoh model yang akan memberikan estimasi MSY dan Emsy yang lebih tinggi, sehingga sangat tidak disarankan untuk dijadikan sebagai panduan dalam pengambilan kebijakan perikanan.
+Tool ini menghitung jumlah tangkapan ikan lestari (MSY) dan upaya penangkapan ikan lestari (Emsy) dengan asumsi equilibrium untuk model Schaefer dan Fox. Pendekatan ini ditampilkan disini hanya untuk tujuan edukasi sebagai contoh model yang akan memberikan estimasi MSY dan Emsy yang lebih tinggi, sehingga sangat tidak disarankan untuk dijadikan sebagai panduan dalam pengambilan kebijakan perikanan. Banyak dari kita yang masih menggunakan metode ini, meskipun sudah tidak disarankan untuk digunakan sejak 1980an.
 
 2. Surplus produksi dengan asumsi non equilibrium menggunakan data time series
 
-Tool ini melakukan estimasi parameter K, B0, r, q dan menentukan jumlah tangkapan ikan lestari (MSY), biomassa ikan lestari (Bmsy), serta upaya penangkapan ikan lestari (Emsy) menggunakan data runut waktu dengan asumsi non-equilibrium untuk model Schaefer dan Fox. Tool ini sudah disesuaikan untuk kebutuhan data yang terbatas (dapat mengakomodasi ketiadaaan input data upaya penangkapan) serta sudah memperhitungkan kesalahan dalam pengambilan data (observation error) dan kesalahan dalam model (model error).
+Tool ini melakukan estimasi parameter K, B0, r, q dan menentukan jumlah tangkapan ikan lestari (MSY), biomassa ikan lestari (Bmsy), serta upaya penangkapan ikan lestari (Emsy) menggunakan data runut waktu dengan asumsi non-equilibrium untuk model Schaefer dan Fox. Tool ini sudah disesuaikan untuk kebutuhan data yang terbatas (dapat mengakomodasi ketiadaaan input data upaya penangkapan) serta sudah memperhitungkan kesalahan dalam pengambilan data (observation error) dan kesalahan dalam model (model error). Sebagian kecil dari kita sudah menggunakan metode ini, tetapi masih kurang tepat dalam melakukan analisisnya sehingga berakibat pada kurang tepatnya perhitungan MSY, Bmsy dan Emsy
 
 3. Menghitung rentang data reference point
 
@@ -35,8 +35,11 @@ df <- data.frame(tahun=c(...),
 
 #### melakukan estimasi parameter menggunakan optim
 K <- max(df[,2])*2
+
 Bo <- max(df[,2])*1.5
+
 r <- 0.5
+
 q <- 0.00025
 
 startPars <- c(log(K), log(Bo), log(r), log(q), log(0.1))
