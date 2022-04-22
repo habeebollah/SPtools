@@ -1,3 +1,7 @@
+# Surplus production under equilibrium assumption for Schaefer and Fox 
+
+rm(list = ls())
+
 SP_Eq <- function(data){
   
   # Schaefer
