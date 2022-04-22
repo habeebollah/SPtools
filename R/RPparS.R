@@ -24,18 +24,20 @@ for (i in 1:nYears) {
 df <- data.frame(catch = C,
                  effort = effort)
 
+Bmsy <- K/2
 MSY <- r*K/4
 Emsy <- r/2*q
-inpars <- c(MSY, Bo, Emsy)
+inpars <- c(Bmsy, MSY, Bo, Emsy)
 
 ### create Schaefer function and plot for data fitting
 RPpar.S <- function(inpars, df){
-  MSY <- exp(inpars[1])
-  B0 <- exp(inpars[2])
-  Emsy <- exp(inpars[3])
+  Bmsy <- exp(inpars[1])
+  MSY <- exp(inpars[2])
+  B0 <- exp(inpars[3])
+  Emsy <- exp(inpars[4])
   
+  k <- 2*Bmsy
   r <- (MSY*4)/k
-  k <- (MSY*4)/r
   q <- r/(2*Emsy)
 
   CPUE <- df$catch/df$effort
@@ -58,13 +60,14 @@ RPpar.S <- function(inpars, df){
 
 ### create minimizing function
 RPpar.S_opt <- function(inpars, df){
-  MSY <- exp(inpars[1])
-  B0 <- exp(inpars[2])
-  Emsy <- exp(inpars[3])
-  sigma <- exp(inpars[4])
+  Bmsy <- exp(inpars[1])
+  MSY <- exp(inpars[2])
+  B0 <- exp(inpars[3])
+  Emsy <- exp(inpars[4])
+  sigma <- exp(inpars[5])
   
+  k <- 2*Bmsy
   r <- (MSY*4)/k
-  k <- (MSY*4)/r
   q <- r/(2*Emsy)
   
   CPUE <- df$catch/df$effort
@@ -84,12 +87,13 @@ RPpar.S_opt <- function(inpars, df){
 }
 
 ### Estimate parameters using optim
-startPars <- c(log(MSY), log(Bo), log(Emsy), log(0.1))
+startPars <- c(log(Bmsy), log(MSY), log(Bo), log(Emsy), log(0.1))
 
 fit <- optim(par=startPars, 
              fn=RPpar.S_opt, 
              df=df, 
-             method="Nelder-Mead")
+             method="Nelder-Mead",
+             hessian=TRUE)
 
 fitted_pars <- exp(fit$par)
 cbind(fitted_pars, c(MSY, Bo, Emsy, NA))
