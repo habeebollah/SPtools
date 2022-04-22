@@ -27,7 +27,7 @@ Metode ini digunakan untuk menentukan MSY, Bmsy dan Emsy menggunakan pendekatan 
 Tool ini akan membuat grafik proyeksi biomass per biomass at msy (B/Bmsy) dan fishing per fishing at msy (F/Fmsy) sebagai panduan untuk melihat kebijakan yang dibuat saat ini serta memperkirakan limit dan target reference point
 
 
-### Cara menggunakan package SPtools ####
+### Cara menggunakan SPtools untuk Surplus produksi dengan asumsi non equilibrium menggunakan data time series ####
 #### membuat input data
 df <- data.frame(tahun=c(...),
                  tangkapan=c(...),
