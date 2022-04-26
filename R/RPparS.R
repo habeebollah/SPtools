@@ -23,18 +23,19 @@ for (i in 1:nYears) {
 
 df <- data.frame(catch = C,
                  effort = effort)
+plot(CPUE, type="l")
 
 Bmsy <- K/2
-MSY <- r*K/4
-Emsy <- r/2*q
-inpars <- c(Bmsy, MSY, Bo, Emsy)
+MSY <- (r*K)/4
+Emsy <- r/(2*q)
+inpars <- c(Bmsy, MSY, Emsy, Bo)
 
 ### create Schaefer function and plot for data fitting
 RPpar.S <- function(inpars, df){
-  Bmsy <- exp(inpars[1])
-  MSY <- exp(inpars[2])
-  B0 <- exp(inpars[3])
-  Emsy <- exp(inpars[4])
+  Bmsy <- inpars[1]
+  MSY <- inpars[2]
+  Emsy <- inpars[3]
+  B0 <- inpars[4]
   
   k <- 2*Bmsy
   r <- (MSY*4)/k
@@ -62,8 +63,8 @@ RPpar.S <- function(inpars, df){
 RPpar.S_opt <- function(inpars, df){
   Bmsy <- exp(inpars[1])
   MSY <- exp(inpars[2])
-  B0 <- exp(inpars[3])
-  Emsy <- exp(inpars[4])
+  Emsy <- exp(inpars[3])
+  B0 <- exp(inpars[4])
   sigma <- exp(inpars[5])
   
   k <- 2*Bmsy
@@ -82,23 +83,24 @@ RPpar.S_opt <- function(inpars, df){
   }
   EstCPUE <-  EstBt * q
   
-  nll <- -sum(dlnorm(x= na.omit(CPUE), meanlog = log(na.omit(EstCPUE)), sdlog = sigma, log = TRUE))
+  nll <- -sum(dlnorm(x= CPUE, meanlog = log(EstCPUE), sdlog = sigma, log = TRUE))
   return(nll)
 }
 
 ### Estimate parameters using optim
-startPars <- c(log(Bmsy), log(MSY), log(Bo), log(Emsy), log(0.1))
+startPars <- c(log(Bmsy), log(MSY), log(Emsy), log(Bo), log(0.1))
 
 fit <- optim(par=startPars, 
              fn=RPpar.S_opt, 
              df=df, 
              method="Nelder-Mead",
-             hessian=TRUE)
+             hessian=F)
 
 fitted_pars <- exp(fit$par)
-cbind(fitted_pars, c(MSY, Bo, Emsy, NA))
+
+cbind(fitted_pars, c(Bmsy, MSY, Emsy, Bo, NA))
 
 ### plot fit
 predicted <- RPpar.S(inpars = fitted_pars[1:4], df)
-
+predicted
 
