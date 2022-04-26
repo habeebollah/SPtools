@@ -132,26 +132,9 @@ Bmsy_Sprofiler <- function(inpars, inpBmsy, df){
   return(nll)
 }
 
-Bmsy.vec <- log(seq(from=300, to=700, by=1))
-Bmsy.NLL <- vector(length=length(Bmsy.vec))
-for (i in 1:length(Bmsy.vec)){
-  tryCatch({
-    x <- optim(par=startPars, fn=Bmsy_Sprofiler, inpBmsy=Bmsy.vec[i],
-               df=df, method="Nelder-Mead")
-  Bmsy.NLL[i] <- x$value
-  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
-  )
-}
-cbind(exp(Bmsy.vec), Bmsy.NLL)
-
-plot(Bmsy.NLL, type="l")
-
-
-# ##########################################################################################3
-
-MSY_Sprofiler <- function(inpars, MSY, df){
+MSY_Sprofiler <- function(inpars, inpMSY, df){
   Bmsy <- exp(inpars[1])
-  MSY <- exp(MSY)
+  MSY <- exp(inpMSY)
   Emsy <- exp(inpars[3])
   B0 <- exp(inpars[4])
   sigma <- exp(inpars[5])
@@ -176,15 +159,72 @@ MSY_Sprofiler <- function(inpars, MSY, df){
   return(nll)
 }
 
+Emsy_Sprofiler <- function(inpars, inpEmsy, df){
+  Bmsy <- exp(inpars[1])
+  MSY <- exp(inpars[1])
+  Emsy <- exp(inpEmsy)
+  B0 <- exp(inpars[4])
+  sigma <- exp(inpars[5])
+  
+  k <- 2*Bmsy
+  r <- (MSY*4)/k
+  q <- r/(2*Emsy)
+  
+  CPUE <- df$catch/df$effort
+  EstCatch <- EstCPUE <- EstBt <- vector(length=nrow(df))
+  
+  for (i in 1:nYears) {
+    if (i == 1) EstBt[i] <- B0
+    if (i>1) EstBt[i] <- max(c(0.01,
+                               EstBt[i-1] +  EstBt[i-1] * r * (1 - EstBt[i-1]/k) - df$catch[i-1]
+    )
+    )
+  }
+  EstCPUE <-  EstBt * q
+  
+  nll <- -sum(dlnorm(x= CPUE, meanlog = log(EstCPUE), sdlog = sigma, log = TRUE))
+  return(nll)
+}
 
-MSY.vec <- seq(from=30, to=70, by=0.01)
+Bmsy.vec <- log(seq(from=300, to=700, by=1))
+Bmsy.NLL <- vector(length=length(Bmsy.vec))
+for (i in 1:length(Bmsy.vec)){
+  tryCatch({
+    x <- optim(par=startPars, fn=Bmsy_Sprofiler, inpBmsy=Bmsy.vec[i],
+               df=df, method="Nelder-Mead")
+    Bmsy.NLL[i] <- x$value
+  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
+  )
+}
+
+MSY.vec <- log(seq(from=30, to=70, by=0.01))
 MSY.NLL <- vector(length=length(MSY.vec))
 for (i in 1:length(MSY.vec)){
-  x <- optim(par=fitted_pars[1,2:3], fn=MSY_Sprofiler, df=df,
-             method="Nelder-Mead", MSY=MSY.vec[i])
-  Bmsy.NLL[i] <- x$value
+  tryCatch({
+    x <- optim(par=startPars, fn=MSY_Sprofiler, inpMSY=MSY.vec[i],
+             df=df, method="Nelder-Mead")
+  MSY.NLL[i] <- x$value
+  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
+  )
+}
+
+Emsy.vec <- log(seq(from=100, to=800, by=1)) # unfinished code
+Emsy.NLL <- vector(length=length(Emsy.vec))
+for (i in 1:length(Emsy.vec)){
+  tryCatch({
+    x <- optim(par=startPars, fn=Emsy_Sprofiler, inpEmsy=Emsy.vec[i],
+               df=df, method="Nelder-Mead")
+    Emsy.NLL[i] <- x$value
+  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
+  )
 }
 
 
+cbind(exp(Bmsy.vec), Bmsy.NLL)
+cbind(exp(MSY.vec), MSY.NLL)
+cbind(exp(Emsy.vec), Emsy.NLL)
 
-
+par(mfrow=c(3,1))
+plot(Bmsy.NLL, type="l")
+plot(MSY.NLL, type="l")
+plot(Emsy.NLL, type="l")
