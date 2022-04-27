@@ -161,7 +161,7 @@ MSY_Sprofiler <- function(inpars, inpMSY, df){
 
 Emsy_Sprofiler <- function(inpars, inpEmsy, df){
   Bmsy <- exp(inpars[1])
-  MSY <- exp(inpars[1])
+  MSY <- exp(inpars[2])
   Emsy <- exp(inpEmsy)
   B0 <- exp(inpars[4])
   sigma <- exp(inpars[5])
@@ -219,12 +219,25 @@ for (i in 1:length(Emsy.vec)){
   )
 }
 
+### get the confident interval from likelihood profile
+Bmsy.cols <- data.frame(Bmsy=exp(Bmsy.vec), NLL=Bmsy.NLL)
+range(Bmsy.cols[Bmsy.cols$NLL<min(Bmsy.cols$NLL)+1.92,1])
 
-cbind(exp(Bmsy.vec), Bmsy.NLL)
-cbind(exp(MSY.vec), MSY.NLL)
-cbind(exp(Emsy.vec), Emsy.NLL)
+MSY.cols <- data.frame(MSY=exp(MSY.vec), NLL=MSY.NLL)
+range(MSY.cols[MSY.cols$NLL<min(MSY.cols$NLL)+1.92,1])
 
+Emsy.cols <- data.frame(Emsy=exp(Emsy.vec), NLL=Emsy.NLL)
+range(Emsy.cols[Emsy.cols$NLL<min(Emsy.cols$NLL)+1.92,1])
+
+### plot the likelihood profile
 par(mfrow=c(3,1))
 plot(Bmsy.NLL, type="l")
+abline(h=min(Bmsy.NLL)+1.92, col="red")
 plot(MSY.NLL, type="l")
+abline(h=min(MSY.NLL)+1.92, col="red")
 plot(Emsy.NLL, type="l")
+abline(h=min(Emsy.NLL)+1.92, col="red")
+
+
+
+
