@@ -1,6 +1,7 @@
 # Surplus production to estimate reference point under non-equilibrium assumption for Schaefer using time series data
 
 rm(list = ls())
+graphics.off()
 
 ### Create fake data from known parameters
 r <- 0.2
@@ -189,34 +190,25 @@ Emsy_Sprofiler <- function(inpars, inpEmsy, df){
 Bmsy.vec <- log(seq(from=300, to=700, by=1))
 Bmsy.NLL <- vector(length=length(Bmsy.vec))
 for (i in 1:length(Bmsy.vec)){
-  tryCatch({
     x <- optim(par=startPars, fn=Bmsy_Sprofiler, inpBmsy=Bmsy.vec[i],
                df=df, method="Nelder-Mead")
     Bmsy.NLL[i] <- x$value
-  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
-  )
 }
 
 MSY.vec <- log(seq(from=30, to=70, by=0.01))
 MSY.NLL <- vector(length=length(MSY.vec))
 for (i in 1:length(MSY.vec)){
-  tryCatch({
     x <- optim(par=startPars, fn=MSY_Sprofiler, inpMSY=MSY.vec[i],
              df=df, method="Nelder-Mead")
   MSY.NLL[i] <- x$value
-  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
-  )
 }
 
 Emsy.vec <- log(seq(from=100, to=800, by=1)) # unfinished code
 Emsy.NLL <- vector(length=length(Emsy.vec))
 for (i in 1:length(Emsy.vec)){
-  tryCatch({
     x <- optim(par=startPars, fn=Emsy_Sprofiler, inpEmsy=Emsy.vec[i],
                df=df, method="Nelder-Mead")
     Emsy.NLL[i] <- x$value
-  }, error=function(e){cat("Error :", conditionMessage(e), "\n")}
-  )
 }
 
 ### get the confident interval from likelihood profile
