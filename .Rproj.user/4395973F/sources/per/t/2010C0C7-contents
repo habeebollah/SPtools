@@ -1,0 +1,222 @@
+# Update library if needed
+#  library(devtools)
+#  install_github('NOAA-EDAB/Rpath', ref="lab_563_spring2022") 
+
+library(Rpath)
+setwd("~/R/FISH563/Week05")
+
+## Loading and examining model inputs 
+
+  # csv files containing base data and diet matrix
+
+  ebs.base.file  <- "EBS_condensed_563_base.csv"
+  ebs.diet.file  <- "EBS_condensed_563_diet.csv"
+  # read csv files into an "unbalanced ecopath" object
+  ebs.unbalanced <- read.rpath.params(ebs.base.file, ebs.diet.file)
+
+  # Examine csv files (note: type, detritus)
+  # Examine unbalanced Ecopath object (note: model, diet, pedigree)
+  ebs.unbalanced
+
+  # Check unbalanced ecopath for format (note: test format breakage)
+  check.rpath.params(ebs.unbalanced)
+
+  # Examine help files (note input file types: pedigree, stanzas)
+  ?read.rpath.params  
+  
+  # Alternate method: create.rpath.params() creates a skeleton set of 
+  # parameters (all NAs) given a list of group names and group types.
+  # Types: 0=consumer, 1=producer, 2=detritus, 3=fleet
+   groups <- 
+     c("Toothed.mammals", "Baleen.whales", "Birds", "Apex.fish", "Pollock", 
+     "P.cod", "Forage.fish", "Arrowtooth", "P.halibut", "Sm.flatfish", 
+     "Epifauna", "Rockfish", "Benthos", "Comm.crabs", "Pred.zoop", 
+     "Copepods", "Pel.microbes", "Ben.microbes", "Lg.phytoplanton", 
+     "Sm.phytoplankton", "Discards", "Detritus", "Trawl", "Cod.pots", 
+     "Longline", "Crab.pots", "State.fisheries")
+   gtype  <- c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,2,3,3,3,3,3)  
+   # ignore Warning message on this next command
+   ebs.empty <- create.rpath.params(groups,gtype)
+   # (After creating, populate with data)  
+
+
+## Balancing the model using the rpath() function running Ecopath
+  
+  # Balance the model (solve for missing parameters) 
+  # Model area (495,000 km^2) used for conversion to model units (t/km^2) 
+  ebs.balanced   <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+
+  # Examine the balanced object
+  # SOME Interesting Outputs: Trophic level, EEs, balances
+  ebs.balanced
+
+  # Display connected food web
+  webplot(ebs.balanced,labels=T, label.cex=.6, fleets=T)
+
+  # Trophic levels calculated from matrix
+  ebs.balanced$TL
+
+  # Types of functional groups
+  rpath.groups(ebs.balanced)
+  rpath.living(ebs.balanced)
+  rpath.detrital(ebs.balanced)
+  rpath.gears(ebs.balanced)
+  rpath.producers(ebs.balanced)
+  rpath.consumers(ebs.balanced)
+  rpath.mixotrophs(ebs.balanced)
+
+  # Fisheries - TL of catch versus TL of fishery 
+  ebs.balanced$Landings         
+  ebs.balanced$Discards
+  landingsTL <- colSums(ebs.balanced$Landings * ebs.balanced$TL)/colSums(ebs.balanced$Landings)
+  discardsTL <- colSums(ebs.balanced$Discards * ebs.balanced$TL)/colSums(ebs.balanced$Discards)
+  totTL      <- colSums((ebs.balanced$Landings+ebs.balanced$Discards) * ebs.balanced$TL)/
+                colSums((ebs.balanced$Landings+ebs.balanced$Discards)) # result of analysis in rpath
+
+
+## Examining Mortality Sources
+
+  # First reset (re-read) and balance the model
+  ebs.unbalanced <- read.rpath.params(ebs.base.file, ebs.diet.file)
+  ebs.balanced  <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+
+  # The diect composition matrix DC has prey in rows and predators in columns.
+  # i.e. ebs.balanced$DC[pred,predator]
+  ebs.balanced$DC
+  # This gives a flow matrix (t/km^2/year) as B(predator) * QB(predator) * DC(prey,predator) 
+  ebs.predprey <- ebs.balanced$QB[col(ebs.balanced$DC)] * ebs.balanced$Biomass[col(ebs.balanced$DC)] * ebs.balanced$DC
+  ebs.catch    <- ebs.balanced$Landings + ebs.balanced$Discards 
+  living <- rpath.living(ebs.balanced)
+  ebs.flows <- cbind(ebs.predprey[living,],ebs.catch[living,])
+  # divide flows by prey biomass (rows) to get instant mort rate on each prey by predator
+  ebs.morts <- ebs.flows/ebs.balanced$Biomass[row(ebs.flows)]
+  mortality <- rowSums(ebs.morts)
+  # Check summed mortalities versus PB and EE
+  data.frame(ebs.balanced$PB[living], mortality, mortality/ebs.balanced$PB[living], ebs.balanced$EE[living])
+
+  barplot(ebs.morts["Pollock",],las=2)
+  barplot(ebs.morts["P.cod",],las=2)
+  barplot(ebs.morts["Copepods",],las=2)
+  barplot(ebs.morts["Pred.zoop",],las=2)
+  barplot(ebs.morts["Forage.fish",],las=2)
+  
+## Testing balance
+  par(mfrow=c(3,2))
+  topdown <- c("Forage.fish", "Pred.zoop", "Copepods", 
+     "Pel.microbes", "Ben.microbes", "Lg.phytoplanton", "Sm.phytoplankton")
+
+  # First reset (re-read) and balance the model
+  ebs.unbalanced <- read.rpath.params(ebs.base.file, ebs.diet.file)
+  ebs.balanced  <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+    barplot(ebs.balanced$Biomass[topdown],las=2)
+    barplot(ebs.balanced$EE,las=2)
+
+  # Get pollock biomass from unbalanced model (note data table method for unbalanced model)
+  poll.orig.biomass <- ebs.unbalanced$model[Group=="Pollock", "Biomass"]
+
+  # Set pollock biomass to be 10% of original
+  ebs.unbalanced$model[Group=="Pollock", "Biomass"] <- poll.orig.biomass/10
+  ebs.balanced <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+  barplot(ebs.balanced$Biomass[topdown],las=2)
+  barplot(ebs.balanced$EE,las=2)
+
+  # Set pollock biomass to be 10x of original
+  ebs.unbalanced$model[Group=="Pollock", "Biomass"] <- poll.orig.biomass*10
+  ebs.balanced <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+  barplot(ebs.balanced$Biomass[topdown],las=2)
+  barplot(ebs.balanced$EE,las=2)
+
+# Note that these changes imply calibrating a single model snapshot, NOT
+# dynamic changes in biomass (as QB, PB are functions of biomass - ecosim)
+       
+
+## EXERCISE
+  # Reset the Rpath model
+  ebs.unbalanced <- read.rpath.params(ebs.base.file, ebs.diet.file)
+  ebs.balanced   <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+
+  # Lookup for species of interest  
+  predator.groups <- "Pollock"
+    
+  # Lookups for primary productivity, forage fish, and zoop   
+  prim.prod.groups <- ebs.balanced$Group[ebs.balanced$type==1]
+  forage.groups <- "Forage.fish"
+  zoop.groups   <- c("Pred.zoop","Copepods") 
+    
+  # Set up a vector of biomass values to test, and vectors to store outputs  
+  base.biomass <- ebs.balanced$Biomass[predator.groups]
+  test.biomass <- seq(0.1, 5.0 , 0.1) * base.biomass
+  prim.prod <- forage.bio <- zoop.bio <- rep(NA,length(test.biomass))
+  ind <- 0    
+
+  # Loop through biomasses and calculate balance for each  
+  for (b in test.biomass){
+    ind <- ind + 1
+    # Insert new biomass into unbalanced model and rebalance model
+    ebs.unbalanced$model[Group==predator.groups, "Biomass"] <- b
+    new.balance <- rpath(ebs.unbalanced)
+
+    # Sum B * PB for Primary Producers, Forage Biomass, Zooplankton Biomass
+    prim.prod[ind]  <- sum(new.balance$Biomass[prim.prod.groups] * new.balance$PB[prim.prod.groups])
+    forage.bio[ind] <- new.balance$Biomass[forage.groups]
+    zoop.bio[ind] <- sum(new.balance$Biomass[zoop.groups])
+  }
+
+  # Reset unbalanced model
+  ebs.unbalanced$model[Group==predator.groups, "Biomass"] <- base.biomass
+  ebs.balanced  <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+ 
+  
+## Exercise questions   
+  # 1.  What is the relationship between pollock biomass and forage fish to support? zooplankton?
+  plot(test.biomass,forage.bio)   
+  plot(test.biomass,zoop.bio)
+  
+  # 2.  What about primary productivity?  Note Units are B(t/km2) * PB (1/year) 
+  plot(test.biomass,prim.prod) 
+          
+  # 3.  Are there any EEs that are too high in the final run (with highest pollock)?
+  new.balance$EE
+  
+  # 4.  What is the highest pollock biomass (2 sig. figures) that has all EEs < 1  
+  ebs.unbalanced$model[Group==predator.groups, "Biomass"] <- 39
+  new.balance <- rpath(ebs.unbalanced)
+  new.balance$EE
+
+  # (reset again)
+  ebs.unbalanced$model[Group==predator.groups, "Biomass"] <- base.biomass
+  ebs.balanced  <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+
+ 
+## Homework
+
+# For each of the following functional groups, determine:
+# 1.  What is the maximum biomass (2 sig figures) and proportion increase from
+#     starting biomass (3 to 5 value) before at least one model group has EE>1?    
+    # P.cod
+  # Reset unbalanced model
+  ebs.unbalanced$model[Group==predator.groups, "Biomass"] <- base.biomass
+  ebs.balanced  <- rpath(ebs.unbalanced, eco.name="Eastern Bering Sea", eco.area="495000")
+  
+  for (b in test.biomass){
+    ind <- ind + 1
+    # Insert new biomass into unbalanced model and rebalance model
+    ebs.unbalanced$model[Group==predator.groups, "Biomass"] <- b
+    new.balance <- rpath(ebs.unbalanced)
+    
+    # Sum B * PB for Primary Producers, Forage Biomass, Zooplankton Biomass
+    prim.prod[ind]  <- sum(new.balance$Biomass[prim.prod.groups] * new.balance$PB[prim.prod.groups])
+    forage.bio[ind] <- new.balance$Biomass[forage.groups]
+    zoop.bio[ind] <- sum(new.balance$Biomass[zoop.groups])
+  }  
+    # P.halibut
+    # Arrowtooth
+    # Birds
+    # Toothed.mammals
+
+# 2. For each of the above, what is the constraining group (group where EE>1 first)
+  
+# 3. At that maximum level for each, what is the biomass of top-down balanced
+# forage fish, zooplankton, and primary productivity to sustain that level?  
+# Is that realistic?
+
