@@ -32,10 +32,8 @@ Tool ini akan membuat grafik proyeksi biomass per biomass at msy (B/Bmsy) dan fi
 
 
 
-
-
-## SPtools dirubah menjadi montiR dan package
-montiR merupakan singkatan dari "Model biOmass diNamik singkaT dI R" dan dapat diunduh melalui link berikut
+# SPtools dirubah menjadi montiR
+montiR merupakan singkatan dari "Model biOmass diNamik singkaT dI R" dan package dapat diunduh dan langsung diinstal dengan meng-klik link berikut di R console
 devtools::install_github("habeebollah/montiR")
 
 
