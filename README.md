@@ -31,11 +31,12 @@ Metode ini digunakan untuk menentukan MSY, Bmsy dan Emsy menggunakan pendekatan 
 Tool ini akan membuat grafik proyeksi biomass per biomass at msy (B/Bmsy) dan fishing per fishing at msy (F/Fmsy) sebagai panduan untuk melihat kebijakan yang dibuat saat ini serta memperkirakan limit dan target reference point. Proyeksi dibuat dengan pendekatan deterministic secara default, dan terdapat opsi untuk tujuan stochastic
 
 
-### Cara menggunakan SPtools untuk Surplus produksi dengan asumsi non equilibrium menggunakan data time series ####
-#### membuat input data
-df <- data.frame(tahun=c(...),
-                 tangkapan=c(...),
-                 upaya=c(...))
 
-## SPtools dirubah dengan nama montiR dan package dapat diunduh melalui link berikut
+
+
+## SPtools dirubah menjadi montiR dan package
+montiR merupakan singkatan dari "Model biOmass diNamik singkaT dI R" dan dapat diunduh melalui link berikut
 devtools::install_github("habeebollah/montiR")
+
+
+
