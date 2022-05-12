@@ -4,7 +4,7 @@ montiR merupakan singkatan dari "Model biOmass diNamik singkaT dI R" dimana pack
 devtools::install_github("habeebollah/montiR")
 ```
 
-montiR (Model biOmass diNamik singkaT dI R) merupakan kumpulan model biomas dinamik dengan pendekatan time series fitting. Tool pemodelan yang tersedia disini antara lain:
+Sebagai kumpulan model biomas dinamik dengan pendekatan time series fitting, tool pemodelan yang tersedia pada package ini antara lain melakukan penghitungan:
 
 (1) Surplus produksi dengan asumsi equilibrium
 
